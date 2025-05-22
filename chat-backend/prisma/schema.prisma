@@ -24,3 +24,11 @@ model Message {
 
   session      ChatSession @relation(fields: [sessionId], references: [id])
 }
+
+model Admin {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  role      String   @default("ADMIN")
+}
