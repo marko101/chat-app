@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import io from "socket.io-client";
 import { Message } from "./types"; // Session ti ne treba ovde
+import TypingDots from "./TypingDots";
 
 const API_URL = "http://localhost:5000"; // prilagodi port prema backendu
 
@@ -13,6 +14,22 @@ export default function ChatPage() {
   const [sessionClosed, setSessionClosed] = useState(false);
   const [systemMessage, setSystemMessage] = useState<string | null>(null);
   const socketRef = useRef<ReturnType<typeof io> | null>(null);
+  const [someoneTyping, setSomeoneTyping] = useState(false);
+
+  useEffect(() => {
+  if (!sessionId || !socketRef.current) return;
+  const socket = socketRef.current;
+  socket.on("typing", (data: { sender: string }) => {
+    
+    if (data.sender === "agent") {
+      setSomeoneTyping(true);
+      setTimeout(() => setSomeoneTyping(false), 2000);
+    }
+  });
+  return () => {
+    socket.off("typing");
+  };
+}, [sessionId]);
 
   // Start chat sesije
   const startSession = async () => {
@@ -21,7 +38,7 @@ export default function ChatPage() {
   };
 
   // Prikupi istoriju i poveži Socket.io kad imamo sessionId
-  useEffect(() => {
+ useEffect(() => {
   if (!sessionId) return;
 
   // Dohvati istoriju poruka
@@ -38,19 +55,28 @@ export default function ChatPage() {
 
   // Slušaj zatvaranje sesije od strane admina
   socket.on("sessionClosed", (data: { message: string }) => {
-  setMessages(prev => [
-    ...prev,
-    {
-      id: "system-" + Date.now(),
-      sessionId: sessionId!,
-      sender: "system",
-      content: data.message,
-      timestamp: new Date().toISOString(),
-    },
-  ]);
-  setSystemMessage(data.message);
-  setSessionClosed(true);
-});
+    setMessages(prev => [
+      ...prev,
+      {
+        id: "system-" + Date.now(),
+        sessionId: sessionId!,
+        sender: "system",
+        content: data.message,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+    setSystemMessage(data.message);
+    setSessionClosed(true);
+  });
+
+  // ---- OVO DODAJ! (slušaj typing event)
+  socket.on("typing", (data: { sender: string }) => {
+   
+    if (data.sender === "agent") {
+      setSomeoneTyping(true);
+      setTimeout(() => setSomeoneTyping(false), 2000);
+    }
+  });
 
   socketRef.current = socket;
 
@@ -58,6 +84,19 @@ export default function ChatPage() {
     socket.disconnect();
   };
 }, [sessionId]);
+
+// useRef za "debounce"
+const typingTimeout = useRef<NodeJS.Timeout | null>(null);
+
+const handleTyping = () => {
+  if (!sessionId || !socketRef.current) return;
+  socketRef.current.emit("typing", { sessionId, sender: "user" });
+
+  if (typingTimeout.current) clearTimeout(typingTimeout.current);
+  typingTimeout.current = setTimeout(() => {
+    // Optionally: emit a stop-typing event if želiš (nije neophodno)
+  }, 2000);
+};
 
   // Slanje poruke
   const sendMessage = () => {
@@ -88,6 +127,8 @@ export default function ChatPage() {
     );
   }
 
+  
+
   return (
     <div style={{ maxWidth: 500, margin: "30px auto", border: "1px solid #ddd", borderRadius: 8, padding: 24 }}>
       <h3>Chat ({userName || "Gost"})</h3>
@@ -112,13 +153,23 @@ export default function ChatPage() {
             {systemMessage}
           </div>
         )}
+
+        {someoneTyping && (
+        <div style={{ color: "#888", fontSize: 14, margin: "6px 0" }}>
+          Agent kuca <TypingDots />
+        </div>
+      )}
       </div>
+      
       <div style={{ display: "flex", gap: 6 }}>
         <input
           type="text"
           placeholder="Poruka..."
           value={message}
-          onChange={e => setMessage(e.target.value)}
+          onChange={e => {
+            setMessage(e.target.value);
+            handleTyping();
+          }}
           style={{ flex: 1, padding: 8 }}
           onKeyDown={e => (e.key === "Enter") && sendMessage()}
           disabled={sessionClosed}

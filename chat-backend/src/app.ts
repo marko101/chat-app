@@ -97,11 +97,16 @@ io.on("connection", (socket) => {
 
   // DODAJ OVO: za typing animaciju (tri tačkice)
   socket.on("typing", ({ sessionId, sender }) => {
-    // Pošalji typing svim korisnicima u toj sobi OSIM onog koji šalje
-    socket.to(sessionId).emit("typing", { sender });
-    // Ako želiš da i admin dashboard vidi "ko kuca", možeš emitovati adminima poseban event
-    io.emit("adminTyping", { sessionId, sender });
-  });
+  // === OVO DODAJ! ===
+  //console.log(`[typing] Od: ${sender}, za sobu: ${sessionId}`);
+  // ==================
+
+  // Pošalji typing svim korisnicima u toj sobi OSIM onog koji šalje
+  socket.to(sessionId).emit("typing", { sender });
+
+  // (opciono) admin dashboard vidi "ko kuca"
+  io.emit("adminTyping", { sessionId, sender });
+});
 
 
 
