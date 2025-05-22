@@ -27,20 +27,20 @@ export default function ChatWindow({ session, token }: Props) {
 
   // Socket.io veza za ovu sesiju
   useEffect(() => {
-    const socket = io(API_URL, { transports: ["websocket"] });
-    socket.emit("join", { sessionId: session.id });
+      const socket = io(API_URL, { transports: ["websocket"] });
+      socket.emit("join", { sessionId: session.id });
 
-    socket.on("message", (msg: Message) => {
-      if (msg.sessionId === session.id) {
-        setMessages(prev => [...prev, msg]);
-      }
-    });
+      socket.on("message", (msg: Message) => {
+        if (msg.sessionId === session.id) {
+          setMessages(prev => [...prev, msg]);
+        }
+      });
 
-    socketRef.current = socket;
-    return () => {
-      socket.disconnect();
-    };
-  }, [session.id]);
+      socketRef.current = socket;
+      return () => {
+        socket.disconnect();
+      };
+    }, [session.id]);
 
   // Scroll na dno kad stigne nova poruka
   useEffect(() => {

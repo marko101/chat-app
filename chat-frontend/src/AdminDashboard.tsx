@@ -11,6 +11,7 @@ export default function AdminDashboard() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const token = localStorage.getItem("adminToken");
+  const [unread, setUnread] = useState<{ [sessionId: string]: boolean }>({});
 
   // Povuci sve AKTIVNE sesije na početku
   useEffect(() => {
@@ -56,14 +57,20 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleSetActiveSession = (id: string) => {
+  setActiveSessionId(id);
+  setUnread(prev => ({ ...prev, [id]: false }));
+};
+
   return (
     <div className="row" style={{ minHeight: 540 }}>
       <div className="col-12 col-md-4 border-end">
         <SessionList
           sessions={sessions}
           activeSessionId={activeSessionId}
-          setActiveSessionId={setActiveSessionId}
+          setActiveSessionId={handleSetActiveSession}
           closeSession={closeSession}
+          unread={unread}
         />
       </div>
       <div className="col-12 col-md-8">

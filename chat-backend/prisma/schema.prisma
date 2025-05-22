@@ -8,11 +8,12 @@ generator client {
 }
 
 model ChatSession {
-  id         String   @id @default(uuid())
-  createdAt  DateTime @default(now())
-  closedAt   DateTime?
-  userName   String?
-  messages   Message[]
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  closedAt    DateTime?
+  userName    String?
+  lastActivity DateTime? // Dodaj ovo polje!
+  messages    Message[]
 }
 
 model Message {

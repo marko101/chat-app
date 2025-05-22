@@ -36,3 +36,12 @@
     transform: rotate(360deg);
   }
 }
+
+@keyframes unread-pulse {
+  from { color: #28a745; }
+  to   { color: #fff; }
+}
+@keyframes unread-flash {
+  from { background-color: #c6ffd2; }
+  to   { background-color: #fff; }
+}

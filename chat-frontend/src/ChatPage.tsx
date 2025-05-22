@@ -22,32 +22,42 @@ export default function ChatPage() {
 
   // Prikupi istoriju i poveži Socket.io kad imamo sessionId
   useEffect(() => {
-    if (!sessionId) return;
+  if (!sessionId) return;
 
-    // Dohvati istoriju poruka
-    axios.get(`${API_URL}/api/session/${sessionId}/messages`)
-      .then(res => setMessages(res.data));
+  // Dohvati istoriju poruka
+  axios.get(`${API_URL}/api/session/${sessionId}/messages`)
+    .then(res => setMessages(res.data));
 
-    // Poveži Socket.io
-    const socket = io(API_URL);
-    socket.emit("join", { sessionId });
+  // Poveži Socket.io
+  const socket = io(API_URL);
+  socket.emit("join", { sessionId });
 
-    socket.on("message", (msg: Message) => {
-      setMessages(prev => [...prev, msg]);
-    });
+  socket.on("message", (msg: Message) => {
+    setMessages(prev => [...prev, msg]);
+  });
 
-    // Slušaj zatvaranje sesije od strane admina
-    socket.on("sessionClosed", (data: { message: string }) => {
-      setSystemMessage(data.message);
-      setSessionClosed(true);
-    });
+  // Slušaj zatvaranje sesije od strane admina
+  socket.on("sessionClosed", (data: { message: string }) => {
+  setMessages(prev => [
+    ...prev,
+    {
+      id: "system-" + Date.now(),
+      sessionId: sessionId!,
+      sender: "system",
+      content: data.message,
+      timestamp: new Date().toISOString(),
+    },
+  ]);
+  setSystemMessage(data.message);
+  setSessionClosed(true);
+});
 
-    socketRef.current = socket;
+  socketRef.current = socket;
 
-    return () => {
-      socket.disconnect();
-    };
-  }, [sessionId]);
+  return () => {
+    socket.disconnect();
+  };
+}, [sessionId]);
 
   // Slanje poruke
   const sendMessage = () => {

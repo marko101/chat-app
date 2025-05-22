@@ -58,8 +58,43 @@ io.on("connection", (socket) => {
       }
     });
     // Emituj svima u toj sobi
-    io.to(sessionId).emit("message", msg);
-  });
+    io.to(sessionId).emit("message", { ...msg, sessionId });
+  
+
+  // ---- Provera spama SAMO za korisnika:
+    if (sender === "user") {
+      // Prebroj poruke korisnika od poslednje agentove poruke
+      const messages = await prisma.message.findMany({
+        where: { sessionId },
+        orderBy: { timestamp: "desc" },
+      });
+
+      let countUser = 0;
+      for (const m of messages) {
+        if (m.sender === "user") countUser++;
+        else break; // čim naiđeš na agentovu, staješ
+      }
+
+      if (countUser > 20) {
+        // Zaključi sesiju
+        await prisma.chatSession.update({
+          where: { id: sessionId },
+          data: { closedAt: new Date() },
+        });
+        // Obavesti korisnika
+        io.to(sessionId).emit("sessionClosed", { message: "Sesija je zatvorena zbog potencijalnog spama." });
+      }
+    }
+    
+
+    // --- osveži last activity (koristiš u delu ispod)
+    await prisma.chatSession.update({
+      where: { id: sessionId },
+      data: { lastActivity: new Date() },
+    });
+    });
+    
+
 
   socket.on("disconnect", () => {
     console.log("Socket disconnected:", socket.id);
@@ -67,3 +102,25 @@ io.on("connection", (socket) => {
 });
 
 export { app, httpServer };
+
+setInterval(async () => {
+  const now = new Date();
+  const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000);
+
+  // Nađi sve AKTIVNE sesije koje su poslednji put bile aktivne pre više od 5 minuta
+  const inactiveSessions = await prisma.chatSession.findMany({
+    where: {
+      closedAt: null,
+      lastActivity: { lt: fiveMinAgo }
+    }
+  });
+
+  for (const session of inactiveSessions) {
+    await prisma.chatSession.update({
+      where: { id: session.id },
+      data: { closedAt: new Date() }
+    });
+    // Emituj info korisniku (i agentima)
+    io.to(session.id).emit("sessionClosed", { message: "Sesija je zatvorena usled neaktivnosti." });
+  }
+}, 60 * 1000); // Proverava svakog minuta
