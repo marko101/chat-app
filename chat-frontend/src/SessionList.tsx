@@ -21,7 +21,7 @@ export default function SessionList({
   return (
     <ul className="list-group">
       {sessions.map(sess => (
-        <li
+       <li
   key={sess.id}
   className={
     "list-group-item list-group-item-action d-flex justify-content-between align-items-center" +
@@ -29,7 +29,7 @@ export default function SessionList({
   }
   style={{
     cursor: "pointer",
-    background: unread[sess.id] ? "linear-gradient(90deg, #b7fdbb 0%, #fff 100%)" : undefined,
+    background: unread[sess.id] ? "#c6ffd2" : undefined, // ili linear-gradient...
     animation: unread[sess.id]
       ? "unread-flash 0.7s linear infinite alternate"
       : undefined

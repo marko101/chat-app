@@ -28,7 +28,6 @@ export default function AdminDashboard() {
 
   // Listener za novu sesiju (new chat)
   socket.on("newSession", (data: { sessionId: string }) => {
-    // Povuci podatke o novoj sesiji iz backend-a
     axios.get(`${API_URL}/api/admin/session/${data.sessionId}`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
@@ -36,8 +35,17 @@ export default function AdminDashboard() {
     });
   });
 
+  // DODAJ OVO:
+  socket.on("adminMessage", (msg: Message) => {
+    // Ako NIJE aktivna sesija, stavi unread na true!
+    if (msg.sessionId !== activeSessionId) {
+      setUnread(prev => ({ ...prev, [msg.sessionId]: true }));
+    }
+    // Po želji: možeš update-ovati i sessions da dodaš novu poruku u sesiju, ali nije obavezno za badge/animaciju.
+  });
+
   return () => { socket.disconnect(); };
-}, [token]);
+}, [token, activeSessionId]);
 
   // Pronađi trenutno aktivnu sesiju
   const activeSession = sessions.find(s => s.id === activeSessionId) || null;
@@ -61,6 +69,8 @@ export default function AdminDashboard() {
   setActiveSessionId(id);
   setUnread(prev => ({ ...prev, [id]: false }));
 };
+
+useEffect(() => { console.log("Unread:", unread); }, [unread]);
 
   return (
     <div className="row" style={{ minHeight: 540 }}>

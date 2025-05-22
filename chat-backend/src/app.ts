@@ -39,7 +39,6 @@ app.get("/api/session/:id/messages", async (req, res) => {
   res.json(messages);
 });
 
-// SOCKET.IO: chat komunikacija
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
 
@@ -57,11 +56,14 @@ io.on("connection", (socket) => {
         content,
       }
     });
-    // Emituj svima u toj sobi
-    io.to(sessionId).emit("message", { ...msg, sessionId });
-  
 
-  // ---- Provera spama SAMO za korisnika:
+    // Emituj SVIMA u toj sobi (user + agent u tom chatu)
+    io.to(sessionId).emit("message", { ...msg, sessionId });
+
+    // **Ovo je za admin dashboard** – šalje SVIM ADMINIMA na frontendu
+    io.emit("adminMessage", { ...msg, sessionId });
+
+    // ---- Provera spama SAMO za korisnika:
     if (sender === "user") {
       // Prebroj poruke korisnika od poslednje agentove poruke
       const messages = await prisma.message.findMany({
@@ -85,15 +87,22 @@ io.on("connection", (socket) => {
         io.to(sessionId).emit("sessionClosed", { message: "Sesija je zatvorena zbog potencijalnog spama." });
       }
     }
-    
 
     // --- osveži last activity (koristiš u delu ispod)
     await prisma.chatSession.update({
       where: { id: sessionId },
       data: { lastActivity: new Date() },
     });
-    });
-    
+  });
+
+  // DODAJ OVO: za typing animaciju (tri tačkice)
+  socket.on("typing", ({ sessionId, sender }) => {
+    // Pošalji typing svim korisnicima u toj sobi OSIM onog koji šalje
+    socket.to(sessionId).emit("typing", { sender });
+    // Ako želiš da i admin dashboard vidi "ko kuca", možeš emitovati adminima poseban event
+    io.emit("adminTyping", { sessionId, sender });
+  });
+
 
 
   socket.on("disconnect", () => {
