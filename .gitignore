@@ -1,0 +1,10 @@
+# chat-backend
+/chat-backend/node_modules/
+/chat-backend/.env
+
+# chat-frontend
+/chat-frontend/node_modules/
+/chat-frontend/.env
+
+# ostalo
+.DS_Store

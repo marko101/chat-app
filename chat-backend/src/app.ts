@@ -4,6 +4,8 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
+import adminRoutes from "./routes/admin";
+import getAdminRouter from "./routes/admin";
 
 dotenv.config();
 const prisma = new PrismaClient();
@@ -14,13 +16,16 @@ const io = new Server(httpServer, { cors: { origin: "*" } });
 
 app.use(cors());
 app.use(express.json());
+app.use("/api/admin", getAdminRouter(io));
 
-// REST: kreiranje chat sesije
+// REST: kreiranje chat sesije (user)
 app.post("/api/session", async (req, res) => {
   const { userName } = req.body;
   const session = await prisma.chatSession.create({
     data: { userName }
   });
+  // --- OVO DODAJ: Emituj novu sesiju svim agentima
+  io.emit("newSession", { sessionId: session.id });
   res.json({ sessionId: session.id });
 });
 
