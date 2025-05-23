@@ -32,26 +32,21 @@ export default function UserHome() {
       </button>
 
       {/* Chat prozor kao modal */}
-      {showChat && (
-        <div style={{
-          position: "fixed",
-          bottom: 100,
-          right: 24,
-          width: 370,
-          maxWidth: "90vw",
-          background: "#fff",
-          border: "1px solid #ddd",
-          borderRadius: 10,
-          zIndex: 1001,
-          boxShadow: "0 8px 48px #0003"
-        }}>
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button className="btn btn-sm btn-link" onClick={() => setShowChat(false)}>
-              ✕
-            </button>
-          </div>
-          <ChatPage />
-        </div>
+{showChat && (
+  <div style={{
+    position: "fixed",
+    bottom: 100,
+    right: 24,
+    width: 370,
+    maxWidth: "90vw",
+    background: "#fff",
+    border: "1px solid #ddd",
+    borderRadius: 10,
+    zIndex: 1001,
+    boxShadow: "0 8px 48px #0003"
+  }}>
+    <ChatPage onClose={() => setShowChat(false)} />
+  </div>
       )}
     </div>
   );

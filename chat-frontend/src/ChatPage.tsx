@@ -6,7 +6,7 @@ import TypingDots from "./TypingDots";
 
 const API_URL = "http://localhost:5000"; // prilagodi port prema backendu
 
-export default function ChatPage() {
+export default function ChatPage({ onClose }: { onClose: () => void }) {
   const [userName, setUserName] = useState<string>("");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [message, setMessage] = useState<string>("");
@@ -129,59 +129,219 @@ const handleTyping = () => {
 
   
 
-  return (
-    <div style={{ maxWidth: 500, margin: "30px auto", border: "1px solid #ddd", borderRadius: 8, padding: 24 }}>
-      <h3>Chat ({userName || "Gost"})</h3>
-      <div style={{
-        minHeight: 200,
-        maxHeight: 320,
-        overflowY: "auto",
-        marginBottom: 8,
-        background: "#fafaff",
-        borderRadius: 4,
-        padding: 12
-      }}>
-        {messages.map(msg => (
-          <div key={msg.id} style={{ marginBottom: 6, color: msg.sender === "user" ? "#235" : "#070" }}>
-            <strong>{msg.sender === "user" ? (userName || "Gost") : "Agent"}:</strong> {msg.content}
-            <div style={{ fontSize: 11, color: "#999" }}>{new Date(msg.timestamp).toLocaleTimeString()}</div>
-          </div>
-        ))}
-        {/* Prikaži sistemsku poruku ako postoji */}
-        {systemMessage && (
-          <div style={{ color: "#d00", marginBottom: 10, fontWeight: 600 }}>
-            {systemMessage}
-          </div>
-        )}
+ return (
+  <div
+    style={{
+      maxWidth: 410,
+      margin: "30px auto",
+      border: "1.5px solid #dde4ee",
+      borderRadius: 18,
+      background: "#f9fbfd",
+      boxShadow: "0 8px 40px #1e2b5c14",
+      overflow: "hidden",
+      display: "flex",
+      flexDirection: "column",
+      minHeight: 540
+    }}
+  >
+    {/* HEADER */}
+    <div
+      style={{
+        width: "100%",
+        minHeight: 64,
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
+        borderRadius: "18px 18px 0 0",
+        padding: "10px 20px 10px 16px",
+        background: "linear-gradient(90deg, #2252b8 0%, #51a8f7 100%)",
+        color: "#fff",
+        boxShadow: "0 2px 10px #2252b811",
+        borderBottom: "1px solid #e6ebf2",
+        position: "relative"
+      }}
+    >
+      <img
+        src="/live-chat_eng_hwholv.avif"
+        alt="Podrška"
+        width={44}
+        height={44}
+        style={{
+          borderRadius: "50%",
+          marginRight: 8,
+          border: "2.5px solid #fff",
+          boxShadow: "0 0 7px #2252b822",
+          background: "#fff"
+        }}
+      />
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 700, fontSize: 17, letterSpacing: 0.5 }}>
+          Maja • Live Support
+        </div>
+        <div style={{ fontSize: 13, color: "#d3fff1", display: "flex", alignItems: "center" }}>
+          <span
+            style={{
+              display: "inline-block",
+              width: 11,
+              height: 11,
+              borderRadius: "50%",
+              background: "#24e387",
+              marginRight: 7,
+              boxShadow: "0 0 7px #1bffbb"
+            }}
+          /> Online
+        </div>
+      </div>
+      {/* Powered by desno */}
+      <div style={{ fontSize: 11, color: "#e4ebff", opacity: 0.82, marginRight: 17 }}>
+        powered by <span style={{ color: "#fff", fontWeight: 500 }}>LiveChat</span>
+      </div>
+      <button
+        style={{
+          position: "absolute",
+          top: 14,
+          right: 10,
+          border: "none",
+          background: "transparent",
+          color: "#fff",
+          fontWeight: 800,
+          fontSize: 23,
+          cursor: "pointer",
+          opacity: 0.7,
+          transition: "opacity 0.2s"
+        }}
+        onClick={onClose}
+        aria-label="Zatvori chat"
+        title="Zatvori"
+      >
+        ×
+      </button>
+    </div>
 
-        {someoneTyping && (
-        <div style={{ color: "#888", fontSize: 14, margin: "6px 0" }}>
+    {/* CHAT MESSAGES */}
+    <div
+      style={{
+        height: 320, // ili 300 ili 350 po želji
+        overflowY: "auto",
+        background: "#f9fbfd",
+        padding: "22px 12px 8px 12px"
+      }}
+    >
+      {messages.length === 0 && (
+        <div style={{ color: "#aaa", textAlign: "center", fontSize: 15, padding: "60px 0 20px 0" }}>
+          Nema poruka. Počni razgovor!
+        </div>
+      )}
+      {messages.map(msg => (
+        <div
+          key={msg.id}
+          style={{
+            display: "flex",
+            justifyContent: msg.sender === "user" ? "flex-end" : "flex-start",
+            marginBottom: 10
+          }}
+        >
+          <div
+            style={{
+              background: msg.sender === "user" ? "#4fa7ff" : "#e5f7ff",
+              color: msg.sender === "user" ? "#fff" : "#235",
+              borderRadius: msg.sender === "user" ? "18px 18px 5px 18px" : "18px 18px 18px 5px",
+              padding: "8px 16px",
+              maxWidth: "70%",
+              fontSize: 15,
+              boxShadow: "0 1px 5px #195bb020",
+              border: msg.sender === "user" ? "1px solid #b8e4fc" : "1px solid #d4eefb"
+            }}
+          >
+            <div style={{ fontWeight: 500, marginBottom: 2, fontSize: 13, opacity: 0.85 }}>
+              {msg.sender === "user" ? (userName || "Gost") : "Agent"}
+            </div>
+            <span>{msg.content}</span>
+            <div style={{ fontSize: 10.5, color: "#7ab8e4", marginTop: 2, textAlign: "right" }}>
+              {new Date(msg.timestamp).toLocaleTimeString()}
+            </div>
+          </div>
+        </div>
+      ))}
+      {/* Sistem poruka */}
+      {systemMessage && (
+        <div style={{ color: "#d00", marginBottom: 13, fontWeight: 600, textAlign: "center" }}>
+          {systemMessage}
+        </div>
+      )}
+      {/* Typing dots */}
+      {someoneTyping && (
+        <div style={{ color: "#4fa7ff", fontSize: 15, margin: "7px 0", textAlign: "left" }}>
           Agent kuca <TypingDots />
         </div>
       )}
-      </div>
-      
-      <div style={{ display: "flex", gap: 6 }}>
-        <input
-          type="text"
-          placeholder="Poruka..."
-          value={message}
-          onChange={e => {
-            setMessage(e.target.value);
-            handleTyping();
-          }}
-          style={{ flex: 1, padding: 8 }}
-          onKeyDown={e => (e.key === "Enter") && sendMessage()}
-          disabled={sessionClosed}
-        />
-        <button onClick={sendMessage} disabled={sessionClosed}>Pošalji</button>
-      </div>
-      {/* Opcionalno: dodatni info kada je sesija zatvorena */}
-      {sessionClosed && (
-        <div style={{ marginTop: 12, color: "#c00", fontWeight: 500 }}>
-          Ova chat sesija je završena i više nije moguće slati poruke.
-        </div>
-      )}
     </div>
-  );
+
+    {/* INPUT ZONA */}
+    <div
+      style={{
+        padding: "13px 13px 14px 13px",
+        background: "#f4f7fa",
+        borderTop: "1px solid #dde6ee",
+        display: "flex",
+        gap: 8,
+        alignItems: "center"
+      }}
+    >
+      <input
+        type="text"
+        placeholder="Poruka..."
+        value={message}
+        onChange={e => {
+          setMessage(e.target.value);
+          handleTyping();
+        }}
+        style={{
+          flex: 1,
+          padding: "11px 16px",
+          border: "1.5px solid #b8e4fc",
+          borderRadius: 10,
+          fontSize: 15,
+          background: "#fff",
+          outline: "none",
+          boxShadow: "0 1px 7px #aedfff22",
+        }}
+        onKeyDown={e => (e.key === "Enter") && sendMessage()}
+        disabled={sessionClosed}
+      />
+      <button
+        onClick={sendMessage}
+        disabled={sessionClosed}
+        style={{
+          background: "linear-gradient(90deg, #27b3fe 0%, #51a8f7 100%)",
+          color: "#fff",
+          border: "none",
+          padding: "10px 19px",
+          borderRadius: 9,
+          fontWeight: 700,
+          fontSize: 15.5,
+          boxShadow: "0 1px 8px #0b53b722",
+          cursor: sessionClosed ? "not-allowed" : "pointer",
+          opacity: sessionClosed ? 0.6 : 1,
+          transition: "opacity 0.15s"
+        }}
+      >
+        Pošalji
+      </button>
+    </div>
+    {sessionClosed && (
+      <div style={{
+        marginTop: 0,
+        color: "#c00",
+        fontWeight: 500,
+        textAlign: "center",
+        padding: "11px 0 9px 0",
+        background: "#fff2f2"
+      }}>
+        Ova chat sesija je završena i više nije moguće slati poruke.
+      </div>
+    )}
+  </div>
+);
+
 }
