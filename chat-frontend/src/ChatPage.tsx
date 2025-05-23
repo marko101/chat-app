@@ -15,6 +15,7 @@ export default function ChatPage({ onClose }: { onClose: () => void }) {
   const [systemMessage, setSystemMessage] = useState<string | null>(null);
   const socketRef = useRef<ReturnType<typeof io> | null>(null);
   const [someoneTyping, setSomeoneTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
   if (!sessionId || !socketRef.current) return;
@@ -36,6 +37,12 @@ export default function ChatPage({ onClose }: { onClose: () => void }) {
     const res = await axios.post(`${API_URL}/api/session`, { userName });
     setSessionId(res.data.sessionId);
   };
+
+  //skroluje poruke  a dole
+  useEffect(() => {
+  // svaki put kad se promene messages, skroluj dole
+  messagesEndRef.current?.scrollTo(0, messagesEndRef.current.scrollHeight);
+}, [messages]);
 
   // Prikupi istoriju i poveži Socket.io kad imamo sessionId
  useEffect(() => {
@@ -133,9 +140,9 @@ const handleTyping = () => {
   <div
     style={{
       maxWidth: 410,
-      margin: "30px auto",
-      border: "1.5px solid #dde4ee",
-      borderRadius: 18,
+      
+      border: "1.5px solidrgb(25, 95, 194)",
+      
       background: "#f9fbfd",
       boxShadow: "0 8px 40px #1e2b5c14",
       overflow: "hidden",
@@ -152,7 +159,7 @@ const handleTyping = () => {
         display: "flex",
         alignItems: "center",
         gap: 14,
-        borderRadius: "18px 18px 0 0",
+        borderRadius: "10px 10px 0 0",
         padding: "10px 20px 10px 16px",
         background: "linear-gradient(90deg, #2252b8 0%, #51a8f7 100%)",
         color: "#fff",
@@ -162,10 +169,10 @@ const handleTyping = () => {
       }}
     >
       <img
-        src="/live-chat_eng_hwholv.avif"
+        src="/chat_girl.jpg"
         alt="Podrška"
-        width={44}
-        height={44}
+        width={64}
+        height={64}
         style={{
           borderRadius: "50%",
           marginRight: 8,
@@ -176,7 +183,7 @@ const handleTyping = () => {
       />
       <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 700, fontSize: 17, letterSpacing: 0.5 }}>
-          Maja • Live Support
+          Radojka • Live Support
         </div>
         <div style={{ fontSize: 13, color: "#d3fff1", display: "flex", alignItems: "center" }}>
           <span
@@ -194,7 +201,7 @@ const handleTyping = () => {
       </div>
       {/* Powered by desno */}
       <div style={{ fontSize: 11, color: "#e4ebff", opacity: 0.82, marginRight: 17 }}>
-        powered by <span style={{ color: "#fff", fontWeight: 500 }}>LiveChat</span>
+        powered by <span style={{ color: "#fff", fontWeight: 500 }}>Litico</span>
       </div>
       <button
         style={{
@@ -220,11 +227,13 @@ const handleTyping = () => {
 
     {/* CHAT MESSAGES */}
     <div
+      ref={messagesEndRef}
       style={{
-        height: 320, // ili 300 ili 350 po želji
+        height: 320,
         overflowY: "auto",
         background: "#f9fbfd",
-        padding: "22px 12px 8px 12px"
+        padding: "22px 12px 18px 12px",
+        borderRadius: "0 0 18px 18px",
       }}
     >
       {messages.length === 0 && (
